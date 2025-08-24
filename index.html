@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CyberChain Explorer - Retro Terminal</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Courier Prime", monospace;
+        background: linear-gradient(45deg, #0f0f23, #1a1a2e);
+        color: #00ff00;
+        min-height: 100vh;
+        overflow-x: auto;
+      }
+
+      .terminal {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        border: 2px solid #00ff00;
+        border-radius: 10px;
+        box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+        margin-top: 20px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        border-bottom: 2px solid #00ff00;
+      }
+
+      .title {
+        font-size: 2.5rem;
+        color: #00ffff;
+        text-shadow: 0 0 10px #00ffff;
+        animation: glow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes glow {
+        from {
+          text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+        }
+        to {
+          text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff;
+        }
+      }
+
+      .subtitle {
+        color: #ffff00;
+        margin-top: 10px;
+        font-size: 1.2rem;
+      }
+
+      .controls {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        background: linear-gradient(45deg, #ff0080, #8000ff);
+        border: none;
+        color: white;
+        padding: 12px 20px;
+        font-family: inherit;
+        font-size: 1rem;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        font-weight: bold;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 0, 128, 0.4);
+      }
+
+      .display-area {
+        background: rgba(0, 20, 0, 0.8);
+        border: 1px solid #00ff00;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        min-height: 400px;
+        font-family: "Courier Prime", monospace;
+        line-height: 1.6;
+      }
+
+      .block-card {
+        background: rgba(0, 30, 0, 0.6);
+        border: 1px solid #00aa00;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        position: relative;
+      }
+
+      .block-header {
+        color: #00ffff;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        border-bottom: 1px dashed #00aa00;
+        padding-bottom: 5px;
+      }
+
+      .transaction {
+        background: rgba(128, 0, 255, 0.1);
+        border-left: 3px solid #8000ff;
+        padding: 10px;
+        margin: 8px 0;
+      }
+
+      .metadata {
+        color: #ffaa00;
+        font-size: 0.9rem;
+        margin-top: 10px;
+      }
+
+      .clue {
+        color: #ff6600;
+        background: rgba(255, 102, 0, 0.1);
+        padding: 8px;
+        border-radius: 3px;
+        margin: 5px 0;
+        border-left: 3px solid #ff6600;
+      }
+
+      .secret-found {
+        background: rgba(255, 215, 0, 0.2);
+        border: 2px solid #ffd700;
+        color: #ffd700;
+        padding: 20px;
+        text-align: center;
+        animation: pulse 1s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .progress-bar {
+        background: rgba(0, 0, 0, 0.5);
+        height: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00ff00, #00ffff);
+        width: 0%;
+        transition: width 0.5s;
+      }
+
+      .hash {
+        color: #aa00ff;
+        word-break: break-all;
+      }
+
+      .address {
+        color: #00aaff;
+        word-break: break-all;
+      }
+
+      .amount {
+        color: #ffaa00;
+        font-weight: bold;
+      }
+
+      .status-bar {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 10px;
+        border-top: 1px solid #00ff00;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .status-item {
+        color: #00ffff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="terminal">
+      <div class="header">
+        <div class="title">🔗 CYBERCHAIN EXPLORER</div>
+        <div class="subtitle">[ DISTRIBUTED LEDGER TREASURE HUNT ]</div>
+        <div style="color: #ff6600; margin-top: 10px">
+          Find the hidden secret embedded in the blockchain...
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn" onclick="generateNewBlock()">MINE BLOCK</button>
+        <button class="btn" onclick="exploreBlock()">EXPLORE BLOCK</button>
+        <button class="btn" onclick="searchTransactions()">
+          SCAN TRANSACTIONS
+        </button>
+        <button class="btn" onclick="analyzeMetadata()">
+          ANALYZE METADATA
+        </button>
+        <button class="btn" onclick="resetBlockchain()">RESET CHAIN</button>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+      <div class="display-area" id="displayArea">
+        <div style="text-align: center; color: #ffaa00">
+          === CYBERCHAIN INITIALIZED ===<br />
+          Welcome to the distributed ledger explorer.<br />
+          Begin your treasure hunt by mining blocks and exploring the
+          chain...<br /><br />
+          🔍 HINT: Look for unusual patterns in transaction metadata
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <div class="status-item">BLOCKS: <span id="blockCount">0</span></div>
+        <div class="status-item">
+          CLUES FOUND: <span id="clueCount">0</span>/7
+        </div>
+        <div class="status-item">
+          DIFFICULTY: <span id="difficulty">0x0001</span>
+        </div>
+        <div class="status-item">
+          STATUS: <span id="chainStatus">READY</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Blockchain simulation with embedded treasure hunt
+      class CyberChain {
+        constructor() {
+          this.chain = [];
+          this.pendingTransactions = [];
+          this.difficulty = 2;
+          this.cluesFound = [];
+          this.secretKey = "CYBER_TREASURE_2025";
+          this.treasureAddresses = [
+            "0x1337c0de",
+            "0xdeadbeef",
+            "0xcafebabe",
+            "0xfeedface",
+            "0xbadc0de",
+            "0x8badf00d",
+            "0xc0ffee",
+          ];
+          this.createGenesisBlock();
+        }
+
+        createGenesisBlock() {
+          const genesisBlock = new Block(0, [], "00000000");
+          genesisBlock.hash = this.calculateHash(genesisBlock);
+          this.chain.push(genesisBlock);
+        }
+
+        getLatestBlock() {
+          return this.chain[this.chain.length - 1];
+        }
+
+        addTransaction(transaction) {
+          this.pendingTransactions.push(transaction);
+        }
+
+        minePendingTransactions() {
+          // Generate some random transactions with hidden clues
+          this.generateTreasureTransactions();
+
+          const block = new Block(
+            this.chain.length,
+            this.pendingTransactions,
+            this.getLatestBlock().hash
+          );
+
+          block.mineBlock(this.difficulty);
+          this.chain.push(block);
+          this.pendingTransactions = [];
+
+          return block;
+        }
+
+        generateTreasureTransactions() {
+          const clues = [
+            "Binary path leads to hexadecimal truth",
+            "Seven keys unlock one door",
+            "The genesis holds no secrets, but the seventh does",
+            "Reverse the hash, find the cache",
+            "Metadata whispers what code shouts",
+            "Treasure lies where addresses converge",
+            "The final clue is the first letter of each",
+          ];
+
+          // Clear pending transactions
+          this.pendingTransactions = [];
+
+          // Add regular transactions
+          for (let i = 0; i < 3; i++) {
+            this.pendingTransactions.push(
+              new Transaction(
+                `0x${Math.random().toString(16).substr(2, 8)}`,
+                `0x${Math.random().toString(16).substr(2, 8)}`,
+                Math.floor(Math.random() * 1000),
+                `Regular transaction ${i + 1}`
+              )
+            );
+          }
+
+          // Add treasure transaction if we haven't found all clues
+          if (this.cluesFound.length < 7) {
+            const treasureAddr = this.treasureAddresses[this.cluesFound.length];
+            const clueText = clues[this.cluesFound.length];
+
+            this.pendingTransactions.push(
+              new Transaction(
+                "0x00genesis",
+                treasureAddr,
+                this.cluesFound.length + 1,
+                `🔐 ${clueText} | Fragment: ${this.secretKey.charAt(
+                  this.cluesFound.length * 2
+                )}${this.secretKey.charAt(this.cluesFound.length * 2 + 1)}`
+              )
+            );
+          }
+        }
+
+        calculateHash(block) {
+          return this.simpleHash(
+            block.index +
+              block.previousHash +
+              block.timestamp +
+              JSON.stringify(block.transactions) +
+              block.nonce
+          ).toString();
+        }
+
+        simpleHash(str) {
+          let hash = 0;
+          for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = (hash << 5) - hash + char;
+            hash = hash & hash;
+          }
+          // Ensure we get a proper hex string with good distribution
+          return Math.abs(hash).toString(16).padStart(8, "0");
+        }
+
+        isChainValid() {
+          for (let i = 1; i < this.chain.length; i++) {
+            const currentBlock = this.chain[i];
+            const previousBlock = this.chain[i - 1];
+
+            if (currentBlock.hash !== this.calculateHash(currentBlock)) {
+              return false;
+            }
+
+            if (currentBlock.previousHash !== previousBlock.hash) {
+              return false;
+            }
+          }
+          return true;
+        }
+      }
+
+      class Block {
+        constructor(index, transactions, previousHash) {
+          this.index = index;
+          this.timestamp = Date.now();
+          this.transactions = transactions;
+          this.previousHash = previousHash;
+          this.nonce = 0;
+          this.hash = "";
+        }
+
+        mineBlock(difficulty) {
+          const target = Array(difficulty + 1).join("0");
+          while (this.hash.substring(0, difficulty) !== target) {
+            this.nonce++;
+            this.hash = blockchain.calculateHash(this);
+            // Add safety break to prevent infinite loops
+            if (this.nonce > 100000) {
+              console.log(
+                `Mining timeout at nonce: ${this.nonce}, hash: ${this.hash}`
+              );
+              break;
+            }
+          }
+          console.log(`Block mined! Nonce: ${this.nonce}, Hash: ${this.hash}`);
+        }
+      }
+
+      class Transaction {
+        constructor(fromAddress, toAddress, amount, metadata = "") {
+          this.fromAddress = fromAddress;
+          this.toAddress = toAddress;
+          this.amount = amount;
+          this.metadata = metadata;
+          this.timestamp = Date.now();
+        }
+      }
+
+      // Initialize blockchain
+      let blockchain = new CyberChain();
+      let displayArea = document.getElementById("displayArea");
+
+      function updateStatusBar() {
+        document.getElementById("blockCount").textContent =
+          blockchain.chain.length - 1; // Subtract 1 to exclude genesis
+        document.getElementById("clueCount").textContent =
+          blockchain.cluesFound.length;
+        document.getElementById(
+          "difficulty"
+        ).textContent = `0x000${blockchain.difficulty}`;
+
+        // Dynamic status based on progress
+        let status = "READY";
+        if (blockchain.cluesFound.length === 0) {
+          status = "SEARCHING";
+        } else if (blockchain.cluesFound.length < 7) {
+          status = `HUNTING (${blockchain.cluesFound.length}/7)`;
+        } else {
+          status = "🏆 TREASURE FOUND!";
+        }
+        document.getElementById("chainStatus").textContent = status;
+
+        const progress = (blockchain.cluesFound.length / 7) * 100;
+        document.getElementById("progressFill").style.width = `${progress}%`;
+
+        // Update difficulty display to be more realistic
+        document.getElementById(
+          "difficulty"
+        ).textContent = `${blockchain.difficulty}`;
+      }
+
+      function generateNewBlock() {
+        // Update status to show mining in progress
+        document.getElementById("chainStatus").textContent = "⛏️ MINING...";
+        displayArea.innerHTML =
+          '<div style="color: #ffaa00;">🔨 MINING NEW BLOCK...</div>';
+
+        // Visual mining animation
+        let dots = 0;
+        const miningInterval = setInterval(() => {
+          dots = (dots + 1) % 4;
+          displayArea.innerHTML = `
+                    <div style="color: #ffaa00;">🔨 MINING NEW BLOCK${".".repeat(
+                      dots
+                    )}</div>
+                    <div style="color: #666; margin-top: 10px;">
+                        Calculating proof-of-work...<br>
+                        Looking for hash with ${
+                          blockchain.difficulty
+                        } leading zeros
+                    </div>
+                `;
+        }, 200);
+
+        setTimeout(() => {
+          clearInterval(miningInterval);
+          const newBlock = blockchain.minePendingTransactions();
+          displayBlockDetails(newBlock);
+          updateStatusBar();
+
+          // Show success message briefly
+          if (
+            newBlock.transactions.some((tx) =>
+              blockchain.treasureAddresses.includes(tx.toAddress)
+            )
+          ) {
+            document.getElementById("chainStatus").textContent =
+              "🎯 CLUE FOUND!";
+            setTimeout(() => updateStatusBar(), 2000);
+          } else {
+            updateStatusBar();
+          }
+        }, 1000);
+      }
+
+      function displaySpecificBlock(blockIndex) {
+        const block = blockchain.chain[blockIndex];
+        displayBlockDetails(block);
+      }
+
+      function displayBlockDetails(block) {
+        let html = `
+                <div class="block-card">
+                    <div class="block-header">${
+                      block.index === 0
+                        ? "GENESIS BLOCK"
+                        : `BLOCK #${block.index} - MINED`
+                    }</div>
+                    <div>Hash: <span class="hash">${block.hash}</span></div>
+                    <div>Previous Hash: <span class="hash">${
+                      block.previousHash
+                    }</span></div>
+                    <div>Timestamp: ${new Date(
+                      block.timestamp
+                    ).toLocaleString()}</div>
+                    <div>Nonce: ${block.nonce}</div>
+                    <div style="margin-top: 15px; color: #00ffff;">TRANSACTIONS (${
+                      block.transactions.length
+                    }):</div>
+            `;
+
+        block.transactions.forEach((tx, i) => {
+          const isTreasure = blockchain.treasureAddresses.includes(
+            tx.toAddress
+          );
+          html += `
+                    <div class="transaction ${isTreasure ? "treasure-tx" : ""}">
+                        <div>From: <span class="address">${
+                          tx.fromAddress
+                        }</span></div>
+                        <div>To: <span class="address">${
+                          tx.toAddress
+                        }</span></div>
+                        <div>Amount: <span class="amount">${
+                          tx.amount
+                        } CYBER</span></div>
+                        ${
+                          tx.metadata
+                            ? `<div class="metadata">📝 ${tx.metadata}</div>`
+                            : ""
+                        }
+                    </div>
+                `;
+
+          if (isTreasure && !blockchain.cluesFound.includes(tx.toAddress)) {
+            blockchain.cluesFound.push(tx.toAddress);
+            html += `<div class="clue">🎯 CLUE DISCOVERED! Progress: ${blockchain.cluesFound.length}/7</div>`;
+          }
+        });
+
+        html += "</div>";
+
+        if (blockchain.cluesFound.length === 7) {
+          html += `
+                    <div class="secret-found">
+                        🏆 TREASURE FOUND! 🏆<br>
+                        SECRET KEY REVEALED: ${blockchain.secretKey}<br>
+                        You have successfully discovered all cryptographic breadcrumbs!
+                    </div>
+                `;
+        }
+
+        displayArea.innerHTML = html;
+      }
+
+      function exploreBlock() {
+        if (blockchain.chain.length <= 1) {
+          displayArea.innerHTML =
+            '<div style="color: #ff6600;">No blocks to explore. Mine some blocks first!</div>';
+          return;
+        }
+
+        // Let user choose which block to explore
+        let html =
+          '<div style="color: #00ffff; font-size: 1.2rem;">🔍 BLOCKCHAIN EXPLORER</div><br>';
+        html +=
+          '<div style="color: #ffaa00;">Select a block to explore:</div><br>';
+
+        blockchain.chain.forEach((block, index) => {
+          const blockType = index === 0 ? "GENESIS" : `BLOCK #${index}`;
+          const txCount = block.transactions.length;
+          html += `
+                    <div class="block-card" style="cursor: pointer; transition: all 0.3s;" 
+                         onclick="displaySpecificBlock(${index})">
+                        <div class="block-header">${blockType}</div>
+                        <div>Hash: <span class="hash">${block.hash}</span></div>
+                        <div>Transactions: ${txCount}</div>
+                        <div>Timestamp: ${new Date(
+                          block.timestamp
+                        ).toLocaleString()}</div>
+                        <div style="color: #ff6600; margin-top: 5px;">Click to explore →</div>
+                    </div>
+                `;
+        });
+
+        displayArea.innerHTML = html;
+      }
+
+      function searchTransactions() {
+        let allTransactions = [];
+        blockchain.chain.forEach((block) => {
+          block.transactions.forEach((tx) => {
+            if (blockchain.treasureAddresses.includes(tx.toAddress)) {
+              allTransactions.push({ ...tx, blockIndex: block.index });
+            }
+          });
+        });
+
+        let html =
+          '<div style="color: #00ffff; font-size: 1.2rem;">🔍 TREASURE TRANSACTION SCAN</div><br>';
+
+        if (allTransactions.length === 0) {
+          html +=
+            '<div style="color: #ffaa00;">No treasure transactions found. Mine more blocks!</div>';
+        } else {
+          allTransactions.forEach((tx) => {
+            html += `
+                        <div class="transaction">
+                            <div>Block: #${tx.blockIndex}</div>
+                            <div>To: <span class="address">${tx.toAddress}</span></div>
+                            <div>Amount: <span class="amount">${tx.amount} CYBER</span></div>
+                            <div class="metadata">📝 ${tx.metadata}</div>
+                        </div>
+                    `;
+          });
+        }
+
+        displayArea.innerHTML = html;
+      }
+
+      function analyzeMetadata() {
+        let fragments = [];
+        blockchain.chain.forEach((block) => {
+          block.transactions.forEach((tx) => {
+            if (tx.metadata && tx.metadata.includes("Fragment:")) {
+              const fragment = tx.metadata.split("Fragment: ")[1];
+              if (fragment) fragments.push(fragment);
+            }
+          });
+        });
+
+        let html =
+          '<div style="color: #00ffff; font-size: 1.2rem;">🔬 METADATA ANALYSIS</div><br>';
+        html += `<div style="color: #ffaa00;">Fragments discovered: ${fragments.length}/7</div><br>`;
+
+        fragments.forEach((fragment, i) => {
+          html += `<div class="clue">Fragment ${i + 1}: ${fragment}</div>`;
+        });
+
+        if (fragments.length === 7) {
+          const reconstructed = fragments.join("");
+          html += `<br><div class="secret-found">🔓 RECONSTRUCTED SECRET: ${reconstructed}</div>`;
+        }
+
+        displayArea.innerHTML = html;
+      }
+
+      function resetBlockchain() {
+        blockchain = new CyberChain();
+        displayArea.innerHTML = `
+                <div style="text-align: center; color: #ffaa00;">
+                    === CYBERCHAIN RESET ===<br>
+                    New blockchain initialized.<br>
+                    The treasure hunt begins anew...<br><br>
+                    🔍 HINT: Look for unusual patterns in transaction metadata
+                </div>
+            `;
+        updateStatusBar();
+      }
+
+      // Initialize display
+      updateStatusBar();
+    </script>
+  </body>
+</html>
